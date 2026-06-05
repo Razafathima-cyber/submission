@@ -353,21 +353,43 @@ reader.readAsDataURL(file);
 
 }
 
-function submitMission(){
+async function submitMission(){
 
-if(!document.getElementById('auth').checked){
+ if(!document.getElementById('auth').checked){
+   alert("Confirm authenticity first");
+   return;
+ }
 
-alert("Confirm authenticity first.");
+ next('submit');
 
-return;
+ const payload = {
+
+   name:
+   document.getElementById('userName').value,
+
+   level:
+   document.getElementById('levelInput').value,
+
+   karma:
+   document.getElementById('karmaInput').value,
+
+   screenshot:
+   document.getElementById('preview').src
+
+ };
+
+ await fetch(
+   "YOUR_APPS_SCRIPT_URL",
+   {
+     method:"POST",
+     body:JSON.stringify(payload)
+   }
+ );
+
+ document.getElementById('status').innerHTML =
+ "TRANSMISSION ACCEPTED";
+
 }
-
-next('submit');
-
-const bar=document.getElementById('bar');
-const status=document.getElementById('status');
-
-let progress=0;
 
 const stages=[
 "Uploading evidence...",
