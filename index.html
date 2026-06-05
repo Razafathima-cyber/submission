@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ANOMALY</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,Helvetica,sans-serif;
+}
+
+html,body{
+height:100%;
+overflow:hidden;
+background:#000;
+color:#fff;
+}
+
+body{
+background:
+radial-gradient(circle at center,#111 0%,#000 70%);
+}
+
+body::before{
+content:"";
+position:fixed;
+inset:0;
+pointer-events:none;
+background:
+repeating-linear-gradient(
+0deg,
+transparent,
+transparent 2px,
+rgba(255,255,255,.02) 3px
+);
+}
+/* LOGO */
+
+.logo-container{
+position:fixed;
+top: 10px;
+left:25px; /* change to right:25px if you want right side */
+z-index:999;
+}
+
+.logo-container img{
+height: 120px;
+width:auto;
+opacity:.9;
+transition:.4s;
+filter:drop-shadow(0 0 10px rgba(255,255,255,.2));
+}
+
+.logo-container img:hover{
+opacity:1;
+transform:scale(1.05);
+}
+
+.fog{
+position:fixed;
+inset:0;
+background:
+radial-gradient(circle at 30% 30%,
+rgba(255,255,255,.03),
+transparent 40%);
+animation:fogMove 18s linear infinite;
+pointer-events:none;
+}
+
+@keyframes fogMove{
+0%{transform:translateX(-5%)}
+50%{transform:translateX(5%)}
+100%{transform:translateX(-5%)}
+}
+
+.screen{
+position:absolute;
+inset:0;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+padding:30px;
+text-align:center;
+opacity:0;
+pointer-events:none;
+transition:1s;
+}
+
+.screen.active{
+opacity:1;
+pointer-events:auto;
+}
+
+.title{
+font-size:clamp(40px,10vw,100px);
+letter-spacing:12px;
+margin-bottom:20px;
+}
+
+.subtitle{
+opacity:.7;
+margin-bottom:30px;
+}
+
+button{
+padding:14px 30px;
+background:transparent;
+color:white;
+border:1px solid rgba(255,255,255,.4);
+cursor:pointer;
+transition:.3s;
+}
+
+button:hover{
+box-shadow:0 0 20px white;
+}
+
+input{
+width:min(500px,90vw);
+padding:15px;
+margin-top:15px;
+background:#050505;
+border:1px solid #333;
+color:white;
+}
+
+#typewriter{
+font-size:1.2rem;
+letter-spacing:2px;
+}
+
+.preview{
+max-width:300px;
+max-height:200px;
+margin-top:20px;
+display:none;
+border:1px solid #333;
+}
+
+.progress{
+width:min(500px,90vw);
+height:12px;
+border:1px solid #444;
+margin-top:20px;
+}
+
+.bar{
+height:100%;
+width:0%;
+background:white;
+transition:.2s;
+}
+
+.glitch{
+animation:glitch .15s;
+}
+
+@keyframes glitch{
+0%{transform:translate(2px)}
+50%{transform:translate(-2px)}
+100%{transform:translate(0)}
+}
+
+
+</style>
+</head>
+<body>
+<div class="logo-container">
+    <img src="logo.png" alt="Anomaly Logo">
+</div>
+<div class="fog"></div>
+
+<!-- LOADING -->
+<div class="screen active" id="loading">
+<div id="typewriter"></div>
+</div>
+
+<!-- START -->
+<div class="screen" id="start">
+<h1 class="title">ANOMALY</h1>
+<p class="subtitle">Are you the anomaly?</p>
+<button onclick="next('mission')">YES</button>
+</div>
+
+<!-- MISSION -->
+<div class="screen" id="mission">
+<h2>Have you completed your assigned mission?</h2>
+<br>
+<button onclick="next('name')">MISSION COMPLETE</button>
+</div>
+
+<!-- NAME -->
+<div class="screen" id="name">
+<h2>Identify yourself.</h2>
+<input id="userName" placeholder="Enter your fullname">
+<br><br>
+<button onclick="next('level')">CONTINUE</button>
+</div>
+
+<!-- LEVEL -->
+<div class="screen" id="level">
+<h2>Report your task level.</h2>
+<input id="levelInput" type="number">
+<br><br>
+<button onclick="next('karma')">CONTINUE</button>
+</div>
+
+<!-- KARMA -->
+<div class="screen" id="karma">
+<h2>Enter the karma earned from this task.</h2>
+<input id="karmaInput" type="number">
+<br><br>
+<button onclick="next('upload')">CONTINUE</button>
+</div>
+
+<!-- UPLOAD -->
+<div class="screen" id="upload">
+<h2>Upload mission evidence.</h2>
+
+<input
+type="file"
+accept="image/*"
+id="imageInput"
+onchange="previewImage(event)"
+>
+
+<img id="preview" class="preview">
+
+<br><br>
+<button onclick="next('confirm')">CONTINUE</button>
+</div>
+
+<!-- CONFIRM -->
+<div class="screen" id="confirm">
+<h2>Do you swear this transmission is genuine?</h2>
+
+<br>
+
+<label>
+<input type="checkbox" id="auth">
+I confirm this evidence has not been altered.
+</label>
+
+<br><br>
+
+<button onclick="submitMission()">
+TRANSMIT TO THE TIMELINE
+</button>
+</div>
+
+<!-- SUBMIT -->
+<div class="screen" id="submit">
+<h2>TRANSMITTING...</h2>
+
+<div class="progress">
+<div class="bar" id="bar"></div>
+</div>
+
+<br>
+
+<p id="status">
+Uploading evidence...
+</p>
+</div>
+
+<script>
+
+const messages=[
+"Searching Timeline...",
+"Locating Participant...",
+"Analyzing Temporal Activity...",
+"Detecting Anomaly...",
+"Reality Synchronization Complete...",
+"Access Granted."
+];
+
+let current=0;
+
+function typeMessage(){
+
+if(current>=messages.length){
+
+setTimeout(()=>{
+next('start');
+},1000);
+
+return;
+}
+
+let text=messages[current];
+let i=0;
+
+document.getElementById('typewriter').innerHTML='';
+
+let interval=setInterval(()=>{
+
+document.getElementById('typewriter')
+.innerHTML+=text.charAt(i);
+
+i++;
+
+if(i>=text.length){
+
+clearInterval(interval);
+
+current++;
+
+setTimeout(typeMessage,1000);
+}
+
+},50);
+
+}
+
+typeMessage();
+
+function next(id){
+
+document.querySelectorAll('.screen')
+.forEach(screen=>{
+screen.classList.remove('active');
+});
+
+document.getElementById(id)
+.classList.add('active');
+
+}
+
+function previewImage(event){
+
+const file=event.target.files[0];
+
+if(!file) return;
+
+const reader=new FileReader();
+
+reader.onload=function(e){
+
+const img=document.getElementById('preview');
+
+img.src=e.target.result;
+
+img.style.display='block';
+
+}
+
+reader.readAsDataURL(file);
+
+}
+
+function submitMission(){
+
+if(!document.getElementById('auth').checked){
+
+alert("Confirm authenticity first.");
+
+return;
+}
+
+next('submit');
+
+const bar=document.getElementById('bar');
+const status=document.getElementById('status');
+
+let progress=0;
+
+const stages=[
+"Uploading evidence...",
+"Synchronizing reality...",
+"Verifying timeline...",
+"Recording transmission...",
+"Transmission accepted."
+];
+
+let stage=0;
+
+const timer=setInterval(()=>{
+
+progress+=4;
+
+bar.style.width=progress+"%";
+
+if(progress%25===0){
+
+stage++;
+
+if(stages[stage]){
+
+status.innerText=stages[stage];
+
+}
+
+}
+
+if(progress>=100){
+
+clearInterval(timer);
+
+status.innerHTML=
+"TRANSMISSION ACCEPTED<br><br>Replace submitMission() with your Google Apps Script fetch request.";
+
+}
+
+},120);
+
+}
+
+/* random glitch */
+
+setInterval(()=>{
+
+document.body.classList.add("glitch");
+
+setTimeout(()=>{
+
+document.body.classList.remove("glitch");
+
+},120);
+
+},10000);
+
+function toggleSound(){
+
+const audio=document.getElementById('bgAudio');
+
+if(audio.paused){
+
+audio.play();
+
+}else{
+
+audio.pause();
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
