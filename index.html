@@ -377,19 +377,26 @@ async function submitMission(){
    document.getElementById('preview').src
 
  };
+status.innerHTML =
+"Synchronizing reality...";
 
- await fetch(
-   "YOUR_APPS_SCRIPT_URL",
-   {
-     method:"POST",
-     body:JSON.stringify(payload)
-   }
- );
+fetch(
+  "YOUR_URL",
+  {
+    method:"POST",
+    body:JSON.stringify(payload)
+  }
+);
 
- document.getElementById('status').innerHTML =
- "TRANSMISSION ACCEPTED";
+setTimeout(() => {
 
-}
+  status.innerHTML = `
+  <h2>TRANSMISSION ACCEPTED</h2>
+  <br>
+  Your evidence has been recorded.
+  `;
+
+}, 1500);
 const stages=[
 "Uploading evidence...",
 "Synchronizing reality...",
